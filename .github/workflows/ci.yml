@@ -159,7 +159,7 @@ jobs:
           manylinux: 2014
           args: --release --out dist
           sccache: 'true'
-          before-script-linux: "apt-get install -y protobuf-compiler"
+          before-script-linux: scripts/protoc.sh
 
       - name: Install Built Wheel
         run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
