@@ -1,0 +1,33 @@
+name: Continuous Integration
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  checks:
+    name: Smoke Tests
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Maturin
+        run: pipx install maturin
+
+      - name: Local Maturin Build
+        run: maturin develop
+
+      - name: Run Tests
+        run: pytest
