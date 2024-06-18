@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.0,<2.0", "wheel"]
+requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -7,6 +7,10 @@ name = "cedar-detect"
 description = ""
 readme = "README.md"
 license = { file = "LICENSE" }
+authors = [
+    { name = "Steven Rosenthal", email = "" },
+    { name = "Leo Covarrubias", email = "leo@leocov.com" },
+]
 requires-python = ">=3.7"
 keywords = ["astronomy"]
 classifiers = [
@@ -24,11 +28,27 @@ dependencies = [
     "Pillow >= 8.3.1",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest"
+# -----------------------------------------------------------------------------
+
+[tool.hatch.version]
+path = "python/cedar_detect/__init__.py"
+
+# -----------------------------------------------------------------------------
+# dev environment -------------------------------------------------------------
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv"
+dev-mode = true
+extra-dependencies = [
+    "maturin>=1.0,<2.0",
+    "pytest",
 ]
 
+[tool.hatch.envs.default.scripts]
+setup = "maturin develop"
+
+# -----------------------------------------------------------------------------
+# maturin config --------------------------------------------------------------
 [tool.maturin]
 bindings = "pyo3"
 python-source = "python"

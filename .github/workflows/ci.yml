@@ -9,25 +9,33 @@ jobs:
   checks:
     name: Smoke Tests
 
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.7", "3.12"]
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Maturin
-        run: pipx install maturin
+      - uses: pypa/hatch@install
 
-      - name: Local Maturin Build
-        run: maturin develop
+      - name: Local Build
+        run: hatch run setup
 
       - name: Run Tests
-        run: pytest
+        run: hatch test
+
+      - name: Release Build
+        run: hatch build -t wheel
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "cedar-detect-python-${{ matrix.os }}"
+          path: dist/*.whl
