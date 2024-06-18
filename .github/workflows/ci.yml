@@ -6,22 +6,48 @@ on:
     branches: [ main ]
 
 jobs:
-  checks:
+  checks-win-mac:
     name: Smoke Tests
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9", "3.12"]
+        include:
+          - target: x86_64-pc-windows-msvc
+            os: windows-2022
+            arch: x64
+
+          - target: i686-pc-windows-msvc
+            os: windows-2022
+            arch: x86
+
+          - target: x86_64-apple-darwin
+            os: macos-12
+            arch: x64
+
+          - target: aarch64-apple-darwin
+            os: macos-12
+            arch: x64
+
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: rustfmt
+
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.9"
+          architecture: ${{ matrix.arch }}
 
       - uses: pypa/hatch@install
 
@@ -33,6 +59,8 @@ jobs:
 
       - name: Release Build
         run: hatch build -t wheel
+        env:
+          CARGO_BUILD_TARGET: ${{ matrix.target }}
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4

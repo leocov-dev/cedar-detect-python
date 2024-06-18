@@ -33,6 +33,7 @@ if __name__ == '__main__':
 
 Requirements:
 
+- Rust `1.79+`
 - Python `3.7+`
 - [Hatch](https://hatch.pypa.io/latest/install/)
   - Install `hatch` following the procedure for your operating system.
