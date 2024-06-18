@@ -10,165 +10,189 @@ env:
   PACKAGE_NAME: "cedar_detect"
 
 jobs:
-  macos:
-    name: Smoke Tests macOS
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-apple-darwin
-            os: macos-12
 
-          - target: universal2-apple-darwin
-            os: macos-latest
-
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.79.0"
-
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - uses: pypa/hatch@install
-
-      - name: Hatch venv
-        run: hatch env create
-
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          args: --release --out dist
-          sccache: 'true'
-
-      - name: Install Built Wheel
-        run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
-
-      - name: Run Tests
-        run: hatch run pytest
-
-      - name: Archive build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "cedar-detect-python-${{ matrix.target }}"
-          path: dist/*.whl
-
-  windows:
-    name: Smoke Tests Windows
-
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            arch: x64
-
-          - target: i686-pc-windows-msvc
-            arch: x86
-
-    runs-on: windows-latest
+        # macos-12 is an intel runner, macos-14 is apple silicon
+        os: [ ubuntu-latest, windows-latest, macos-12, macos-14 ]
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.79.0"
-
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          architecture: ${{ matrix.arch }}
-
-      - uses: pypa/hatch@install
-
-      - name: Hatch venv
-        run: hatch env create
+          fetch-depth: 0
 
       - name: Build wheels
-        uses: PyO3/maturin-action@v1
+        uses: pypa/cibuildwheel@v2.18
+        # configured in pyproject.toml [tool.cibuildwheel]
+
+      - uses: actions/upload-artifact@v4
         with:
-          target: ${{ matrix.target }}
-          args: --release --out dist
-          sccache: 'true'
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
 
-      - name: Install Built Wheel
-        run: hatch run pip install ${{ env.PACKAGE_NAME }} --no-index --find-links dist --force-reinstall
-
-      - name: Run Tests
-        run: hatch run pytest
-
-      - name: Archive build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "cedar-detect-python-${{ matrix.target }}"
-          path: dist/*.whl
-
-  linux:
-    name: Smoke Tests Linux
-
-    strategy:
-      fail-fast: false
-      matrix:
-        target: ["x86_64", "x86", "armv7", "aarch64"]
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.79.0"
-
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - uses: pypa/hatch@install
-
-      - name: Hatch venv
-        run: hatch env create
-
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          manylinux: 2014
-          args: --release --out dist
-          sccache: 'true'
-          before-script-linux: scripts/protoc.sh
-
-      - name: Install Built Wheel
-        run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
-
-      - name: Run Tests
-        run: hatch run pytest
-
-      - name: Archive build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "cedar-detect-python-linux-${{ matrix.target }}"
-          path: dist/*.whl
+#  macos:
+#    name: Smoke Tests macOS
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - target: x86_64-apple-darwin
+#            os: macos-12
+#
+#          - target: universal2-apple-darwin
+#            os: macos-latest
+#
+#    runs-on: ${{ matrix.os }}
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - uses: dtolnay/rust-toolchain@stable
+#        with:
+#          toolchain: "1.79.0"
+#
+#      - uses: arduino/setup-protoc@v3
+#        with:
+#          repo-token: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Install Python ${{ env.PYTHON_VERSION }}
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#
+#      - uses: pypa/hatch@install
+#
+#      - name: Hatch venv
+#        run: hatch env create
+#
+#      - name: Build wheels
+#        uses: PyO3/maturin-action@v1
+#        with:
+#          target: ${{ matrix.target }}
+#          args: --release --out dist
+#          sccache: 'true'
+#
+#      - name: Install Built Wheel
+#        run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+#
+#      - name: Run Tests
+#        run: hatch run pytest
+#
+#      - name: Archive build artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: "cedar-detect-python-${{ matrix.target }}"
+#          path: dist/*.whl
+#
+#  windows:
+#    name: Smoke Tests Windows
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - target: x86_64-pc-windows-msvc
+#            arch: x64
+#
+#          - target: i686-pc-windows-msvc
+#            arch: x86
+#
+#    runs-on: windows-latest
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - uses: dtolnay/rust-toolchain@stable
+#        with:
+#          toolchain: "1.79.0"
+#
+#      - uses: arduino/setup-protoc@v3
+#        with:
+#          repo-token: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Install Python ${{ env.PYTHON_VERSION }}
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#          architecture: ${{ matrix.arch }}
+#
+#      - uses: pypa/hatch@install
+#
+#      - name: Hatch venv
+#        run: hatch env create
+#
+#      - name: Build wheels
+#        uses: PyO3/maturin-action@v1
+#        with:
+#          target: ${{ matrix.target }}
+#          args: --release --out dist
+#          sccache: 'true'
+#
+#      - name: Install Built Wheel
+#        run: hatch run pip install ${{ env.PACKAGE_NAME }} --no-index --find-links dist --force-reinstall
+#
+#      - name: Run Tests
+#        run: hatch run pytest
+#
+#      - name: Archive build artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: "cedar-detect-python-${{ matrix.target }}"
+#          path: dist/*.whl
+#
+#  linux:
+#    name: Smoke Tests Linux
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        target: ["x86_64", "x86", "armv7", "aarch64"]
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - uses: dtolnay/rust-toolchain@stable
+#        with:
+#          toolchain: "1.79.0"
+#
+##      - uses: arduino/setup-protoc@v3
+##        with:
+##          repo-token: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Install Python ${{ env.PYTHON_VERSION }}
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#
+#      - uses: pypa/hatch@install
+#
+#      - name: Hatch venv
+#        run: hatch env create
+#
+#      - name: Build wheels
+#        uses: PyO3/maturin-action@v1
+#        with:
+#          target: ${{ matrix.target }}
+#          manylinux: auto
+#          args: --release --out dist
+#          sccache: 'true'
+#          before-script-linux: scripts/protoc.sh
+#
+#      - name: Install Built Wheel
+#        run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+#
+#      - name: Run Tests
+#        run: hatch run pytest
+#
+#      - name: Archive build artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: "cedar-detect-python-linux-${{ matrix.target }}"
+#          path: dist/*.whl

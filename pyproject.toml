@@ -56,6 +56,17 @@ module-name = "cedar_detect._cedar_detect"
 features = ["pyo3/extension-module"]
 sdist = false
 
+[tool.cibuildwheel]
+build-frontend = "build"
+# skip platforms
+#   pp*         - don't build any PyPy variations
+#   *musllinux* - don't build musl linux variations
+skip = "pp* *musllinux*"
+test-command = "hatch run pytest"
+
+[tool.cibuildwheel.linux]
+before-all = "scripts/protoc.sh"
+
 [tool.pytest.ini_options]
 pythonpath = "./python"
 testpaths = [
