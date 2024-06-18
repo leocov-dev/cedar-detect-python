@@ -43,6 +43,8 @@ jobs:
           toolchain: nightly
           components: rustfmt
 
+      - uses: arduino/setup-protoc@v3
+
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -53,6 +55,8 @@ jobs:
 
       - name: Local Build
         run: hatch run setup
+        env:
+          CARGO_BUILD_TARGET: ${{ matrix.target }}
 
       - name: Run Tests
         run: hatch test
