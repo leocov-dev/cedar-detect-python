@@ -27,7 +27,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.79.0"
-          components: rustfmt
 
       - uses: arduino/setup-protoc@v3
         with:
@@ -50,10 +49,10 @@ jobs:
           args: --release --out dist
 
       - name: Install Built Wheel
-        run: hatch run hatch-test:pip install dist/cedar_detect-*.whl --force-reinstall
+        run: hatch run pip install dist/cedar_detect-*.whl --force-reinstall
 
       - name: Run Tests
-        run: hatch test
+        run: hatch run pytest
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
