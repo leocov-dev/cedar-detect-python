@@ -1,0 +1,15 @@
+[package]
+name = "cedar-detect-wrapper"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "_cedar_detect"
+crate-type = ["cdylib"]
+
+[dependencies]
+cedar_detect = {git = "https://github.com/smroid/cedar-detect", rev = "cac64b12061b0160c523cea68433e40a8b1be9f2"}
+pyo3 = {version = "0.21.2", features = ["abi3-py37", "generate-import-lib", "extension-module"]}
+image = "0.25.1"
+imageproc = "0.25.0"
