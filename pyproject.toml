@@ -65,7 +65,14 @@ skip = "pp* *musllinux*"
 test-command = "hatch run pytest"
 
 [tool.cibuildwheel.linux]
-before-all = "scripts/protoc.sh"
+before-all = "scripts/before-linux.sh"
+environment = { "PATH" = "$HOME/.cargo/bin:$PATH" }
+
+[tool.cibuildwheel.macos]
+before-all = "scripts/before-mac.sh"
+
+[tool.cibuildwheel.windows]
+before-all = "scripts/before-win.cmd"
 
 [tool.pytest.ini_options]
 pythonpath = "./python"

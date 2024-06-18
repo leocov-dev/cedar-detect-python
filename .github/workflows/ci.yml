@@ -183,7 +183,7 @@ jobs:
 #          manylinux: auto
 #          args: --release --out dist
 #          sccache: 'true'
-#          before-script-linux: scripts/protoc.sh
+#          before-script-linux: scripts/before-linux.sh
 #
 #      - name: Install Built Wheel
 #        run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
