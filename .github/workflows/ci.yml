@@ -110,7 +110,7 @@ jobs:
           sccache: 'true'
 
       - name: Install Built Wheel
-        run: hatch run pip install dist\${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+        run: hatch run pip install ${{ env.PACKAGE_NAME }} --no-index --find-links dist --force-reinstall
 
       - name: Run Tests
         run: hatch run pytest
@@ -159,6 +159,7 @@ jobs:
           manylinux: 2014
           args: --release --out dist
           sccache: 'true'
+          before-script-linux: "apt-get install -y protobuf-compiler"
 
       - name: Install Built Wheel
         run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
