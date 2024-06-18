@@ -11,14 +11,19 @@ env:
 
 jobs:
   macos:
-    name: Smoke Tests
+    name: Smoke Tests macOS
 
     strategy:
       fail-fast: false
       matrix:
-        target: ["x86_64-apple-darwin", "universal2-apple-darwin"]
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-12
 
-    runs-on: macos-latest
+          - target: universal2-apple-darwin
+            os: macos-latest
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -61,12 +66,17 @@ jobs:
           path: dist/*.whl
 
   windows:
-    name: Smoke Tests
+    name: Smoke Tests Windows
 
     strategy:
       fail-fast: false
       matrix:
-        target: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]
+        include:
+          - target: x86_64-pc-windows-msvc
+            arch: x64
+
+          - target: i686-pc-windows-msvc
+            arch: x86
 
     runs-on: windows-latest
 
@@ -85,6 +95,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          architecture: ${{ matrix.arch }}
 
       - uses: pypa/hatch@install
 
@@ -99,7 +110,7 @@ jobs:
           sccache: 'true'
 
       - name: Install Built Wheel
-        run: hatch run pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+        run: hatch run pip install dist\${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
 
       - name: Run Tests
         run: hatch run pytest
@@ -111,7 +122,7 @@ jobs:
           path: dist/*.whl
 
   linux:
-    name: Smoke Tests
+    name: Smoke Tests Linux
 
     strategy:
       fail-fast: false
@@ -158,5 +169,5 @@ jobs:
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "cedar-detect-python-${{ matrix.target }}"
+          name: "cedar-detect-python-linux-${{ matrix.target }}"
           path: dist/*.whl

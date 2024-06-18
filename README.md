@@ -1,4 +1,4 @@
-# Cedat Detect Python Bindings
+# Cedar-Detect Python Bindings
 
 > This project is a work in progress and not fully developed
 
