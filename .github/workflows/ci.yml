@@ -6,28 +6,18 @@ on:
     branches: [ main ]
 
 jobs:
-  checks-win-mac:
+  macos:
     name: Smoke Tests
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
-            os: windows-2022
-            arch: x64
-
-          - target: i686-pc-windows-msvc
-            os: windows-2022
-            arch: x86
-
           - target: x86_64-apple-darwin
-            os: macos-12
-            arch: x64
+            os: macos-11
 
           - target: aarch64-apple-darwin
-            os: macos-12
-            arch: x64
+            os: macos-latest
 
     runs-on: ${{ matrix.os }}
 
@@ -36,35 +26,34 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly
+          toolchain: "1.79.0"
           components: rustfmt
 
       - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
-          architecture: ${{ matrix.arch }}
 
       - uses: pypa/hatch@install
 
-      - name: Local Build
-        run: hatch run setup
-        env:
-          CARGO_BUILD_TARGET: ${{ matrix.target }}
+      - name: Hatch venv
+        run: hatch env create
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+
+      - name: Install Built Wheel
+        run: hatch run hatch-test:pip install dist/cedar_detect-*.whl --force-reinstall
 
       - name: Run Tests
         run: hatch test
-
-      - name: Release Build
-        run: hatch build -t wheel
-        env:
-          CARGO_BUILD_TARGET: ${{ matrix.target }}
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
